@@ -1,0 +1,39 @@
+#!/bin/bash
+# Create the Client and Server certs.  There are terraform interfaces to do this, but it seems a bit 
+# clunky, with state management etc.  We could want to generate certs on a regular basis, we probably
+# don't want the certs saved in any state files etc.  So I generate certs with the CLI.
+# Create the Server Certs
+set -eu
+mkdir -p output/server-certs
+
+vault write pki-int-ca/issue/server-cert-for-mydomain.com ttl=31556952 common_name="vault.mydomain.com" ip_sans="127.0.0.1" -format=json > output/server_certs.json
+
+cat output/server_certs.json | jq -r '.data.certificate' > output/server-certs/vaultcert.pem
+cat output/server_certs.json | jq -r '.data.private_key' > output/server-certs/vault_key.pem
+cat output/server_certs.json | jq -r '.data.issuing_ca' > output/server-certs/ca.pem
+cat output/server_certs.json | jq -r '.data.ca_chain[]' > output/server-certs/ca_chain.pem
+
+# Dump the certificates in text mode
+openssl x509 -noout -text -in output/server-certs/ca.pem > output/server-certs/ca.pem.txt 
+openssl x509 -noout -text -in output/server-certs/vaultcert.pem > output/server-certs/vaultcert.pem.txt
+
+# Create Client Certs
+mkdir -p output/client-certs
+# Mount point pki-int-ca created in int.tf
+# Role client-cert-for-mydomain.com created in roles.tf
+# To help create this command line run: > vault path-help pki-int-ca/issue/client-cert-for-mydomain.com
+#vault write pki-int-ca/issue/client-cert-for-clients.mydomain.com ttl=31556952 common_name="steve.dillon@clients.mydomain.com" other_sans="1.2.840.113549.1.9.1;utf8:steve.dillon@yaponcha.com" -format=json > output/client_certs.json
+vault write pki-int-ca/issue/client-cert-for-mydomain.com ttl=31556952 common_name="steve.dillon@mydomain.com"  -format=json > output/client_certs.json
+
+cat output/client_certs.json | jq -r '.data.certificate' > output/client-certs/client-cert.pem
+cat output/client_certs.json | jq -r '.data.private_key' > output/client-certs/client-key.pem
+cat output/client_certs.json | jq -r '.data.issuing_ca' >  output/client-certs/ca.pem
+cat output/client_certs.json | jq -r '.data.ca_chain[]' >  output/client-certs/ca_chain.pem
+
+# Dump the certs in text mode
+openssl x509 -noout -text -in output/client-certs/client-cert.pem > output/client-certs/client-cert.pem.txt
+
+# Create a PKCS / .p12 version of the client cert.  To import the certificate into OSX keychain it needs to 
+# be in this format with the key and cert in the same bundle.
+openssl pkcs12 -export -in output/client-certs/client-cert.pem -inkey output/client-certs/client-key.pem -out certificate.pfx -certfile output/client-certs/ca_chain.pem
+
