@@ -1,1 +1,0 @@
-vault server -config vault-server-ssl.hcl

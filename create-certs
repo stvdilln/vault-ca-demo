@@ -35,5 +35,5 @@ openssl x509 -noout -text -in output/client-certs/client-cert.pem > output/clien
 
 # Create a PKCS / .p12 version of the client cert.  To import the certificate into OSX keychain it needs to 
 # be in this format with the key and cert in the same bundle.
-openssl pkcs12 -export -in output/client-certs/client-cert.pem -inkey output/client-certs/client-key.pem -out certificate.pfx -certfile output/client-certs/ca_chain.pem
+openssl pkcs12 -export -in output/client-certs/client-cert.pem -inkey output/client-certs/client-key.pem -out output/client-certs/certificate.pfx -certfile output/client-certs/ca_chain.pem
 

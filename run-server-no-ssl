@@ -1,2 +1,0 @@
-#!/bin/bash
-vault server -config vault-server-no-ssl.hcl

@@ -1,3 +1,4 @@
+# Create a mount point for the Intermediate CA.
 resource "vault_mount" "pki_int" {
     type = "pki"
     path = "pki-int-ca"
@@ -5,8 +6,15 @@ resource "vault_mount" "pki_int" {
     max_lease_ttl_seconds = 63072000 # 2 years
     description = "Intermediate Authority for ${var.server_cert_domain}"
 }
+#
 # Step 1
+#
 # Create a CSR (Certificate Signing Request)
+# Behind the scenes this creates a new private key, that has signed the 
+# CSR.  Later on, when we store the signed Intermediate Cert, that 
+# certificate must match the Private Key generated here.
+# I don't see an obvious way to use these APIs to put an intermediate cert 
+# into vault that was generated outside of vault.
 resource "vault_pki_secret_backend_intermediate_cert_request" "intermediate" {
   depends_on = [ vault_mount.pki_int ]
 
@@ -21,7 +29,9 @@ resource "vault_pki_secret_backend_intermediate_cert_request" "intermediate" {
   key_type = "rsa"
   key_bits = "4096"
 }
+#
 # Step 2
+#
 # Have the Root CA Sign our CSR
 resource "vault_pki_secret_backend_root_sign_intermediate" "intermediate" {
   depends_on = [ vault_pki_secret_backend_intermediate_cert_request.intermediate, vault_pki_secret_backend_config_ca.ca_config ]
@@ -37,14 +47,18 @@ resource "vault_pki_secret_backend_root_sign_intermediate" "intermediate" {
   ttl = 252288000 #8 years
  
 }
+# Save the public part of the certifiate and store it in a local file.  Note that I never extract
+# the private key out of vault, so 1) their is no risk of disclosing private key 2) this 
+# intermediate cert is bound to vault.
 resource local_file signed_intermediate {
     sensitive_content = vault_pki_secret_backend_root_sign_intermediate.intermediate.certificate
     filename = "${path.root}/output/int_ca/int_cert.pem"
     file_permission = "0400"
 }
 
-
+#
 # Step 3
+#
 # Now that CSR is processed and we have a signed cert
 # Put the Certificate, and The Root CA into the backend 
 # mount point.  IF you do not put the CA in here, the 
@@ -56,6 +70,7 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "intermediate" {
  certificate = "${vault_pki_secret_backend_root_sign_intermediate.intermediate.certificate}\n${tls_self_signed_cert.ca_cert.cert_pem}"
 }
 
+# Terraform outputs if you want to do something more with these certs in terraform.
 output "ca_cert_chain"  {
     value = vault_pki_secret_backend_root_sign_intermediate.intermediate.ca_chain
 }
