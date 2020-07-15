@@ -24,7 +24,7 @@ resource "vault_pki_secret_backend_config_urls" "config_urls" {
 #   backend = vault_mount.root.path
 
 #   type = "exported"
-#   common_name = ${var.server_cert_domain} Root CA"
+#   common_name = "${var.server_cert_domain} Root CA"
 #   ttl = 473040000 #15 Years
 #   format = "pem"
 #   private_key_format = "der"
