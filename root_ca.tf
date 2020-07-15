@@ -20,7 +20,7 @@ resource "vault_pki_secret_backend_config_urls" "config_urls" {
 # CA infrastructure is now tied to vault and pretty much the server 
 # you created the CA on.
 # resource "vault_pki_secret_backend_root_cert" "ca-cert" {
-#   depends_on = ["vault_pki_secret_backend_config_urls.config_urls"]    
+#   depends_on = [vault_pki_secret_backend_config_urls.config_urls]
 #   backend = vault_mount.root.path
 
 #   type = "exported"
