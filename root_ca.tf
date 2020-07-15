@@ -1,4 +1,4 @@
-# Create a mount point for the Root Certiifacte authority.
+# Create a mount point for the Root Certificate authority.
 resource "vault_mount" "root" {
     type = "pki"
     path = "pki-root-ca"
