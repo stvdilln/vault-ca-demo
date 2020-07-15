@@ -23,6 +23,12 @@ resource "vault_pki_secret_backend_role" "role-server-cer" {
   ttl = 2592000
   no_store = true
 
+  key_usage = [
+    "DigitalSignature",
+    "KeyAgreement",
+    "KeyEncipherment"
+  ]
+
 }
 
 resource "vault_pki_secret_backend_role" "vault-client-cert" {
@@ -48,4 +54,9 @@ resource "vault_pki_secret_backend_role" "vault-client-cert" {
   ttl = 2592000
   no_store = true
 
+  key_usage = [
+    "DigitalSignature",
+    "KeyAgreement",
+    "KeyEncipherment"
+  ]
 }
