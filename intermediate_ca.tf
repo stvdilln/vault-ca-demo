@@ -80,5 +80,5 @@ output "intermediate_ca" {
 }
 
 output "intermediate_key"  {
-    value = "${vault_pki_secret_backend_intermediate_cert_request.intermediate.private_key}"
+    value = vault_pki_secret_backend_intermediate_cert_request.intermediate.private_key
 }
